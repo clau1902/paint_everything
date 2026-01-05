@@ -9,9 +9,11 @@ interface PaintCanvasProps {
   color: string;
   brushSize: number;
   onHistoryChange: (canUndo: boolean, canRedo: boolean) => void;
+  onCanvasChange?: () => void; // Called when user makes changes to canvas
   undoTrigger: number;
   redoTrigger: number;
   clearTrigger: number;
+  loadTrigger?: { imageData: string } | null;
 }
 
 interface HistoryState {
@@ -24,9 +26,11 @@ export default function PaintCanvas({
   color,
   brushSize,
   onHistoryChange,
+  onCanvasChange,
   undoTrigger,
   redoTrigger,
   clearTrigger,
+  loadTrigger,
 }: PaintCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -138,6 +142,35 @@ export default function PaintCanvas({
     saveToHistory();
   }, [clearTrigger]);
 
+  // Handle load drawing
+  useEffect(() => {
+    if (!loadTrigger) return;
+    const canvas = canvasRef.current;
+    const context = contextRef.current;
+    if (!canvas || !context) return;
+
+    const img = new Image();
+    img.onload = () => {
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Calculate scaling to fit the canvas while maintaining aspect ratio
+      const scale = Math.min(
+        canvas.width / img.width,
+        canvas.height / img.height
+      );
+      const x = (canvas.width - img.width * scale) / 2;
+      const y = (canvas.height - img.height * scale) / 2;
+      
+      context.drawImage(img, x, y, img.width * scale, img.height * scale);
+      
+      // Save to history
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      setHistory({ past: [imageData], future: [] });
+    };
+    img.src = loadTrigger.imageData;
+  }, [loadTrigger]);
+
   const saveToHistory = useCallback(() => {
     const canvas = canvasRef.current;
     const context = contextRef.current;
@@ -148,7 +181,10 @@ export default function PaintCanvas({
       past: [...prev.past.slice(-50), imageData], // Keep last 50 states
       future: [],
     }));
-  }, []);
+    
+    // Notify parent about canvas change for auto-save
+    onCanvasChange?.();
+  }, [onCanvasChange]);
 
   const getPos = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
