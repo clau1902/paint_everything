@@ -1,8 +1,6 @@
 # 🎨 Paint Everything
 
-A beautiful, feature-rich digital painting application built with Next.js, React 19, TypeScript, and shadcn/ui.
-
-![Paint Everything - Main Interface](./public/screenshot-main.png)
+A feature-rich digital painting application built with Next.js, React 19, TypeScript, and shadcn/ui. Create artwork, save it to the cloud, and share it with anyone via a public link.
 
 ## ✨ Features
 
@@ -14,23 +12,29 @@ A beautiful, feature-rich digital painting application built with Next.js, React
 - **Circle/Ellipse** - Draw circles and ellipses
 - **Fill (Paint Bucket)** - Flood fill enclosed areas with color
 
-![Tools and Color Selection](./public/screenshot-tools.png)
-
 ### 🎨 Color Controls
 - Full color picker supporting any color
 - 15 preset colors for quick access
 - Live color preview in the toolbar
-- Current color displayed in the status bar
 
 ### 📏 Brush Size
 - Adjustable size from 1px to 100px
 - Visual size preview showing current brush
-- Gradient slider with smooth controls
 
 ### ⚡ Actions
 - **Undo/Redo** - Up to 50 history states
 - **Clear Canvas** - Start fresh with a blank canvas
 - **Save Image** - Download your artwork as PNG
+
+### 👤 User Accounts & Cloud Storage
+- Sign up / log in with email and password
+- Auto-save drawings to the cloud
+- Gallery view of all your saved drawings
+- Load any saved drawing back onto the canvas
+
+### 🔗 Sharing
+- Generate a public share link for any drawing
+- Anyone with the link can view the drawing (no account needed)
 
 ### ⌨️ Keyboard Shortcuts
 
@@ -62,8 +66,30 @@ cd paint_everything
 bun install
 # or
 npm install
+```
 
-# Run the development server
+### Environment Variables
+
+Create a `.env.local` file in the project root:
+
+```env
+JWT_SECRET=your-secret-key-here
+```
+
+> The app falls back to a default secret in development, but you should set a strong value in production.
+
+### Database Setup
+
+```bash
+# Push the schema to the SQLite database
+bun run db:push
+# or
+npx drizzle-kit push
+```
+
+### Run the Development Server
+
+```bash
 bun dev
 # or
 npm run dev
@@ -73,29 +99,45 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to start p
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [Next.js 16](https://nextjs.org/) with App Router
+- **Framework**: [Next.js](https://nextjs.org/) with App Router
 - **Language**: TypeScript
-- **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/) + Radix UI
 - **Styling**: Tailwind CSS 4
 - **Icons**: Lucide React
 - **React**: React 19
+- **Database**: SQLite via [Drizzle ORM](https://orm.drizzle.team/)
+- **Auth**: JWT (jose) + bcryptjs
 
 ## 📁 Project Structure
 
 ```
 paint_everything/
 ├── app/
+│   ├── api/
+│   │   ├── auth/             # Login, logout, register, me endpoints
+│   │   ├── drawings/         # CRUD + share endpoints for drawings
+│   │   └── share/[token]/    # Public share token lookup
 │   ├── components/
 │   │   ├── PaintCanvas.tsx   # Canvas with drawing logic
-│   │   └── Toolbar.tsx       # Sidebar with tools and controls
-│   ├── globals.css           # Global styles and theme
-│   ├── layout.tsx            # Root layout
-│   └── page.tsx              # Main page
-├── components/
-│   └── ui/                   # shadcn/ui components
+│   │   ├── Toolbar.tsx       # Sidebar with tools and controls
+│   │   ├── AuthDialog.tsx    # Sign up / login modal
+│   │   ├── GalleryDialog.tsx # Saved drawings gallery
+│   │   ├── SaveDialog.tsx    # Save drawing dialog
+│   │   ├── SaveStatusIndicator.tsx
+│   │   ├── ShareDialog.tsx   # Share link dialog
+│   │   └── UserMenu.tsx      # User account menu
+│   ├── share/[token]/        # Public view for shared drawings
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
 ├── lib/
-│   └── utils.ts              # Utility functions
-└── public/                   # Static assets
+│   ├── db/
+│   │   ├── index.ts          # Drizzle client
+│   │   └── schema.ts         # Users and drawings tables
+│   ├── auth.ts               # JWT helpers
+│   ├── auth-context.tsx      # React auth context
+│   └── utils.ts
+└── public/
 ```
 
 ## 🎯 How to Use
@@ -104,7 +146,9 @@ paint_everything/
 2. **Choose a Color** - Use the color picker or click a preset color
 3. **Adjust Size** - Use the slider to change brush/shape size
 4. **Draw** - Click and drag on the canvas to create your artwork
-5. **Save** - Click the download button to save your masterpiece as PNG
+5. **Sign Up / Log In** - Create an account to save your work to the cloud
+6. **Save** - Name and save your drawing; it will appear in your gallery
+7. **Share** - Generate a public link and share your artwork with anyone
 
 ## 📄 License
 
